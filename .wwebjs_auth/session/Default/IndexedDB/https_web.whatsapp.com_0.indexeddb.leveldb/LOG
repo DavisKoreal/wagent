@@ -1,0 +1,15 @@
+2025/03/30-13:01:46.134 1bd0 Reusing MANIFEST /home/davis/Desktop/LOCAL_REPOSITORY/vendai-agent/.wwebjs_auth/session/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2025/03/30-13:01:46.134 1bd0 Recovering log #262
+2025/03/30-13:01:47.177 1bd0 Reusing old log /home/davis/Desktop/LOCAL_REPOSITORY/vendai-agent/.wwebjs_auth/session/Default/IndexedDB/https_web.whatsapp.com_0.indexeddb.leveldb/000262.log 
+2025/03/30-13:01:49.739 1be7 Level-0 table #268: started
+2025/03/30-13:01:49.930 1be7 Level-0 table #268: 1304284 bytes OK
+2025/03/30-13:01:50.076 1be7 Delete type=0 #262
+2025/03/30-13:01:50.077 1be7 Manual compaction at level-0 from '\x00N\x00\x00\x00' @ 72057594037927935 : 1 .. '\x00O\x00\x00\x00' @ 0 : 0; will stop at (end)
+2025/03/30-13:01:53.629 1bea Compacting 1@1 + 2@2 files
+2025/03/30-13:01:54.935 1bea Generated table #269@1: 72741 keys, 2236954 bytes
+2025/03/30-13:01:55.264 1bea Generated table #270@1: 28481 keys, 1401935 bytes
+2025/03/30-13:01:55.264 1bea Compacted 1@1 + 2@2 files => 3638889 bytes
+2025/03/30-13:01:55.471 1bea compacted to: files[ 0 0 2 0 0 0 0 ]
+2025/03/30-13:01:55.471 1bea Delete type=2 #265
+2025/03/30-13:01:55.471 1bea Delete type=2 #268
+2025/03/30-13:01:55.471 1bea Delete type=2 #264
