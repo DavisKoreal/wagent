@@ -1,0 +1,12 @@
+file:///home/davis/Desktop/wagent/ktdaAgent0x5/index.js:34
+ sportiva console.error('Error calling DeepSeek API:', error);
+          ^^^^^^^
+
+SyntaxError: Unexpected identifier 'console'
+    at compileSourceTextModule (node:internal/modules/esm/utils:346:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:146:18)
+    at #translate (node:internal/modules/esm/loader:431:12)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:478:27)
+    at async ModuleJob._link (node:internal/modules/esm/module_job:110:19)
+
+Node.js v20.19.3

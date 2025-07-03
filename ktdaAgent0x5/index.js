@@ -6,42 +6,38 @@ import fs from 'node:fs';
 import axios from 'axios';
 import { OpenAI } from 'openai';
 import { systemPrompt } from './systemPrompt.js';
-import { getContext } from './context.js';
 import qrcode from 'qrcode-terminal';
 
-// Log environment variables
-console.log('DEEPSEEK_API_KEY:', process.env.DEEPSEEK_API_KEY);
-// console.log('DEEPSEEK_BASE_URL:', process.env.DEEPSEEK_BASE_URL);
+console.log('DEEPSEEK_API_KEY:', process.env.DEEPSEEK_API_KEY.substring(0, 7) + '...'); // Log only the first 4 characters for security
 
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
-const ADMIN_NUMBER = '254795536131';
 
 const openai = new OpenAI({
     baseURL: 'https://api.deepseek.com/v1',
     apiKey: DEEPSEEK_API_KEY
 });
 
-let communicationhistoryList = [{"contact": "contact","role":"role", "content":"content"}];
+let communicationhistoryList = [{"contact": "contact", "role": "role", "content": "content"}];
 
-// console.log('OpenAI Config:', openai.baseURL, openai.apiKey);
 console.log('OpenAI API Initialized with deepseek creds...');
 
 async function getResponseFromDeepSeek(userQuery) {
-    console.log('Sending query to DeepSeek:', userQuery); // Debug
-    const completion = await openai.chat.completions.create({
-        messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userQuery }],
-        model: "deepseek-chat",
-    });
-    // console.log('DeepSeek Response:', completion.choices[0].message.content); // Debug
-    return completion.choices[0].message.content;
+    console.log('Sending query to DeepSeek:', userQuery);
+    try {
+        const completion = await openai.chat.completions.create({
+            messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userQuery }],
+            model: "deepseek-chat",
+        });
+        return completion.choices[0].message.content;
+    } catch (error) {
+        console.error('Error calling DeepSeek API:', error);
+        return 'Sorry, something went wrong. Please try again later.    We did not get a response from deepseek';
+    }
 }
-
-// Rest of your code remains unchanged...
-
 
 class WhatsAppBot {
     constructor() {
-        this.userSessions = new Map();
+        // this.userSessions = new Map();
         this.initializeWhatsAppClient();
     }
 
@@ -49,73 +45,70 @@ class WhatsAppBot {
         this.client = new Client({
             authStrategy: new LocalAuth(),
             puppeteer: {
+                headless: true,
                 args: ['--no-sandbox', '--disable-setuid-sandbox']
             }
         });
 
-        // this.client = new Client({ authStrategy: new LocalAuth() });
-
         this.client.on('qr', (qr) => {
-            console.log('QR code required. Scan it:', qr);
+            console.log('QR code required. Scan it:');
             qrcode.generate(qr, { small: true });
-          });
-        // Event when authentication is successful
+        });
+
         this.client.on('authenticated', () => {
             console.log('Client is authenticated!');
         });
-        
-        // Event when the client is fully ready
+
         this.client.on('ready', () => {
             console.log('Client is ready and fully authenticated!');
         });
-        
-        // Event for authentication failure
+
         this.client.on('auth_failure', (msg) => {
             console.error('Authentication failed:', msg);
         });
-        
-        // Initialize the client
-        this.client.on('message', this.handleMessage.bind(this));
+
+        this.client.on('message', this.handle_NewMessage.bind(this));
         this.client.initialize();
         console.log('Client initialized...');
     }
 
-    async handleMessage(msg) {
-        
-        // Basic conversion
-        const userNumber = msg.from;
+    async handle_NewMessage(msg) {
+        if (!msg || !msg.from || !msg.reply) {
+            console.error('Invalid message object:', msg);
+            return;
+        }
 
-        // get the history of communication with the person and turn it into a sting
+        const userNumber = msg.from;
         const userMessagesContext = communicationhistoryList.filter(item => item.contact === userNumber);
         const commsHistoryString = JSON.stringify(userMessagesContext);
 
-        console.log('Message from:', userNumber, msg.body);
-        const contact = await this.client.getContactById(userNumber);
-        const displayName = contact.pushname || 'Customer';
-        const userInput = msg.body.trim();
+        console.log('Message from:', userNumber, 'Body:', msg.body);
+        try {
+            const contact = await this.client.getContactById(userNumber);
+            const displayName = contact.pushname || 'Customer';
+            const userInput = msg.body.trim();
 
-        if (msg.body !== 'typing') {
-            const chat = await this.client.getChatById(msg.from);
-            chat.sendStateTyping(); // Start typing indicator
-            setTimeout(() => {
-                chat.clearState();  // Clear typing status after 25 seconds
-            }, 25000);
+            if (msg.body !== 'typing') {
+                const chat = await this.client.getChatById(msg.from);
+                console.log('Chat object:', chat);
+                chat.sendStateTyping();
+                setTimeout(() => {
+                    chat.clearState();
+                }, 25000);
+            }
+
+            communicationhistoryList.push({"contact": userNumber, "role": "user", "content": userInput});
+            const query = `chatHistory: ${commsHistoryString} question: ${userInput}`;
+
+            const response = await getResponseFromDeepSeek(query);
+            console.log('Response from DeepSeek:', response);
+            communicationhistoryList.push({"contact": userNumber, "role": "system", "content": response});
+
+            await msg.reply(response);
+        } catch (error) {
+            console.error('Error handling message:', error);
+            await msg.reply('Sorry, an error occurred. Please try again.');
         }
-        
-        // const context = await getContext(userInput);
-
-        communicationhistoryList.push({"contact":userNumber,"role":"user", "content":userInput});
-        // console.log('Context has been found:', context);
-        // const query = userInput + " with this context " + context;
-        // const query = ` context: ${context}
-        //                 chatHistory: ${commsHistoryString}
-        //                 question:` + userInput;
-        const query = ` chatHistory: ${commsHistoryString} question:` + userInput;
-
-        const response = await getResponseFromDeepSeek(query);
-        console.log('Response from DeepSeek:', response);
-        communicationhistoryList.push({"contact":userNumber,"role":"system", "content":response});
-        msg.reply(response);
     }
 }
 
