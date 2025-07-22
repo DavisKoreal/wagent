@@ -5,7 +5,7 @@ import csv from 'csv-parser';
 import fs from 'node:fs';
 import axios from 'axios';
 import { OpenAI } from 'openai';
-import { systemPrompt } from './systemPrompt.js';
+import { systemPrompt } from './systemPromptktda.js';
 import qrcode from 'qrcode-terminal';
 
 console.log('DEEPSEEK_API_KEY:', process.env.DEEPSEEK_API_KEY.substring(0, 7) + '...'); // Log only the first 4 characters for security
